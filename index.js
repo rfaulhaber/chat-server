@@ -8,17 +8,19 @@ const store = createStore(reducer);
 
 const port = process.env.PORT || 3000;
 
-http.listen(port, () => {
-    console.log('listening on *:3000');
-});
-
 io.on('connect', function(socket) {
     console.log('new connection found');
+
     socket.on('disconnect', function() {
         console.log('user disconnected');
     });
 
     socket.on('chat message', function(msg) {
         console.log('message received', msg);
+        socket.broadcast.emit('chat message', msg);
     });
+});
+
+http.listen(port, function() {
+    console.log('listening on *:3000');
 });
