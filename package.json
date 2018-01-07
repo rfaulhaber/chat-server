@@ -6,8 +6,20 @@
   "author": "Ryan Faulhaber <faulhaberryan@gmail.com>",
   "license": "MIT",
   "private": false,
+  "scripts": {
+    "build": "babel src -d lib --source-maps",
+    "test": "yarn run build && mocha",
+    "start": "node index.js"
+  },
   "dependencies": {
     "express": "^4.16.2",
+    "mongodb": "^3.0.1",
+    "redux": "^3.7.2",
     "socket.io": "^2.0.4"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.6.1",
+    "eslint": "^4.15.0"
   }
 }
