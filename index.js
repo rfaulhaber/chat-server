@@ -7,26 +7,54 @@ const { createStore } = require('redux');
 const reducer = require('./lib/reducer').default;
 const store = createStore(reducer);
 
-const port = process.env.PORT || 3000;
+const MongoClient = require('mongodb').MongoClient;
+const mongodbURL = 'mongodb://localhost:27017';
 
-io.on('connect', function(socket) {
-    console.log('new connection found');
+const dbname = 'chatdb';
 
-    const userID = shortid.generate();
-    console.log('generated unique id:', userID);
+initializeDB().then(db => {
+    console.log('db initialized');
 
-    socket.send({id: userID});
+    const users = db.collection('users');
 
-    socket.on('disconnect', function() {
-        console.log('user disconnected');
+    const port = process.env.PORT || 3000;
+
+    io.on('connect', function(socket) {
+        console.log('new connection found');
+
+        const userID = shortid.generate();
+        console.log('generated unique id:', userID);
+
+        users.insertOne({
+            id: userID
+        }).then(({insertedId}) => {
+            console.log('inserted id: ', insertedId);
+            socket.send({id: userID});
+        });
+
+        socket.on('disconnect', function() {
+            console.log('user disconnected');
+        });
+
+        socket.on('chat message', function(msg) {
+            console.log('message received', msg);
+            socket.broadcast.emit('chat message', msg);
+        });
+
+        socket.on('saveID', function(msg) {
+            console.log('save id msg', msg);
+        });
     });
 
-    socket.on('chat message', function(msg) {
-        console.log('message received', msg);
-        socket.broadcast.emit('chat message', msg);
+    http.listen(port, function() {
+        console.log('listening on *:3000');
     });
 });
 
-http.listen(port, function() {
-    console.log('listening on *:3000');
-});
+function initializeDB() {
+    return MongoClient.connect(mongodbURL)
+        .then(client => client.db(dbname))
+        .catch(err => {
+            throw err;
+        });
+}
