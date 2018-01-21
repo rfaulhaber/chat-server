@@ -1,6 +1,7 @@
 const express = require('express')();
 const http = require('http').Server(express);
 const io = require('socket.io')(http);
+const shortid = require('shortid');
 
 const { createStore } = require('redux');
 const reducer = require('./lib/reducer').default;
@@ -10,6 +11,11 @@ const port = process.env.PORT || 3000;
 
 io.on('connect', function(socket) {
     console.log('new connection found');
+
+    const userID = shortid.generate();
+    console.log('generated unique id:', userID);
+
+    socket.send({id: userID});
 
     socket.on('disconnect', function() {
         console.log('user disconnected');
